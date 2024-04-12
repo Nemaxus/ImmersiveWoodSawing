@@ -1,0 +1,9 @@
+textures: {
+		"all": { base: "game:block/wood/bark/aged"},
+			"east": { base: "game:block/wood/bark/aged" },
+			"west": { base: "game:block/wood/bark/aged" },
+			"north": { base: "game:block/wood/bark/aged" },
+			"south": { base: "game:block/wood/bark/aged" },
+			"up": { base: "game:block/wood/treetrunk/aged" },
+			"down": { base: "game:block/wood/treetrunk/aged" }
+	},

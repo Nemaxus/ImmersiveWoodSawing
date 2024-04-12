@@ -1,0 +1,22 @@
+{
+	code: "sawablelog",
+	class: "SawableLog",
+	entityClass: "BESawableLog",
+	shape: { base: "block/complete" },
+	blockmaterial: "Wood",
+	sidesolid:{
+		all: false
+	},
+	sideopaque:{
+		all: false
+	},
+	resistance: 1,
+	creativeInventory: { "general": ["*"] },
+	drops: [],
+	sounds: {
+		"place": "game:block/planks",
+		"walk": "game:walk/wood",
+		"hit": "game:block/planks",
+		"break": "game:block/planks",
+	}
+}
