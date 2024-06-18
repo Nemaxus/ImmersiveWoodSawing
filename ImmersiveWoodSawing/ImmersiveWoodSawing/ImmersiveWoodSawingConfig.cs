@@ -5,7 +5,8 @@
         public bool AutoLogPlacement = false;
         public int PlanksPerUse = 1;
         public bool DisableGridRecipe = true;
-        
+        public float SawSpeedMultiplier = 1.0f;
+
         public ImmersiveWoodSawingConfig()
         {
 
@@ -16,6 +17,7 @@
             AutoLogPlacement = previousConfig.AutoLogPlacement;
             PlanksPerUse = previousConfig.PlanksPerUse;
             DisableGridRecipe = previousConfig.DisableGridRecipe;
+            SawSpeedMultiplier = previousConfig.SawSpeedMultiplier;
         }
     }
 }

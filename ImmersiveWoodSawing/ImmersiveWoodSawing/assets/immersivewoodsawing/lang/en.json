@@ -1,5 +1,8 @@
 {
     "heldhelp-saw": "Saw logs to planks",
 	"blockinteract-saw": "Saw",
-	"sawablelog" : "MySawableLog"
+	"sawablelog" : "MySawableLog",
+	"handbook-sawing-craftinfo" : "Placing a log on ground and holding <hk>rightmouse</hk>-button while having a saw in main hand.",
+	"ingameerror-notsawable-claimedland" : "I can not saw this. I wasn't granted that privilege.",
+	"ingameerror-notsawable-reinforced" : "Can not saw. This log is reinforced."
 }

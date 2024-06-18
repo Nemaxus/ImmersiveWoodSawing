@@ -44,6 +44,7 @@ namespace ImmersiveWoodSawing
             api.World.Config.SetBool(Constants.ModId + ":AutoLogPlacement", config.AutoLogPlacement);
             api.World.Config.SetInt(Constants.ModId + ":PlanksPerUse", config.PlanksPerUse);
             api.World.Config.SetBool(Constants.ModId + ":DisableGridRecipe", config.DisableGridRecipe);
+            api.World.Config.SetFloat(Constants.ModId + ":SawSpeedMultilier", config.SawSpeedMultiplier);
         }
     }
 }

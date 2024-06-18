@@ -1,0 +1,164 @@
+[
+{
+	file : "game:entities/humanoid/player",
+	op : "Add",
+	path : "/client/animations/-",
+	value : {
+				code: "ImmersiveWoodSawing",
+				animation: "immersivewoodsawing", 
+				animationSpeed: 1,
+				blendMode: "AddAverage",
+				attributes: {
+				 soundAtFrame : 10,
+				 authorative: true
+				},
+				weight: 0,
+				holdEyePosAfterEasein: 0.1,
+				elementWeight: {
+					"UpperArmR": 20,
+					"LowerArmR": 20,
+					"LowerTorso": 0.4,
+					"UpperTorso": 0.4,
+					"UpperArmL": 20,
+					"LowerArmL": 20,
+					"ItemAnchor": 80
+				},
+				elementBlendMode: {
+					"UpperArmR": "AddAverage",
+					"LowerArmR": "AddAverage",
+					"LowerTorso": "Average",
+					"UpperTorso": "Average",
+					"UpperArmL": "AddAverage",
+					"LowerArmL": "AddAverage",
+					"ItemAnchor": "Average"
+
+				}
+	}
+},
+{
+	file : "game:entities/humanoid/player",
+	op : "Add",
+	path : "/client/animations/-",
+	value : {
+				code: "ImmersiveWoodSawing-fp",
+				animation: "immersivewoodsawing-fp", 
+				animationSpeed: 1,
+				blendMode: "AddAverage",
+				attributes: {
+				 soundAtFrame : 10,
+				 authorative: true
+				},
+				weight: 0,
+				holdEyePosAfterEasein: 0.1,
+				elementWeight: {
+					"UpperArmR": 20,
+					"LowerArmR": 20,
+					"LowerTorso": 0.4,
+					"UpperTorso": 0.4,
+					"UpperArmL": 80,
+					"LowerArmL": 80,
+					"ItemAnchor": 80
+				},
+				elementBlendMode: {
+					"UpperArmR": "AddAverage",
+					"LowerArmR": "AddAverage",
+					"LowerTorso": "Average",
+					"UpperTorso": "Average",
+					"UpperArmL": "AddAverage",
+					"LowerArmL": "AddAverage",
+					"ItemAnchor": "Average"
+
+				}
+	}
+},
+
+{
+	file : "game:shapes/entity/humanoid/seraph-faceless",
+	op : "Add",
+	path : "/animations/-",
+	value : {
+		
+		"name": "ImmersiveWoodSawing",
+			"code": "immersivewoodsawing",
+			"quantityframes": 15,
+			"onActivityStopped": "Rewind",
+			"onAnimationEnd": "Repeat",
+			"keyframes": [
+				{
+					"frame": 0,
+					"elements": {
+						"UpperTorso": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 12.0, "rotationZ": 13.0 },
+						"UpperArmR": { "offsetX": 0.0, "offsetY": -0.5, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -62.0 },
+						"LowerArmR": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -28.0 },
+						"UpperArmL": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": -30.0, "rotationY": -17.0, "rotationZ": -61.0 },
+						"LowerArmL": { "offsetX": 0.0, "offsetY": 1.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -42.0 },
+						"Neck": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
+						"Head": { "offsetX": 0.7, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": -3.0, "rotationY": -8.0, "rotationZ": -3.0 },
+						"LowerFootL": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
+						"ItemAnchor": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 80.0 }
+					}
+				},
+				{
+					"frame": 10,
+					"elements": {
+						"UpperTorso": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 8.0 },
+						"UpperArmR": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 3.0, "rotationY": 0.0, "rotationZ": -3.0 },
+						"LowerArmR": { "offsetX": 0.0, "offsetY": 1.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 18.0, "rotationZ": -87.0 },
+						"UpperArmL": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": -19.0, "rotationY": -6.0, "rotationZ": -42.0 },
+						"LowerArmL": { "offsetX": 0.0, "offsetY": 1.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -44.0 },
+						"Neck": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
+						"Head": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 6.0 },
+						"LowerFootL": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
+						"ItemAnchor": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 83.0 }
+					}
+				}
+			]
+	}	
+},			
+{
+	file : "game:shapes/entity/humanoid/seraph-faceless",
+	op : "Add",
+	path : "/animations/-",
+	value : {			
+			
+			
+		
+			"name": "ImmersiveWoodSawing-fp",
+			"code": "immersivewoodsawing-fp",
+			"quantityframes": 15,
+			"onActivityStopped": "Rewind",
+			"onAnimationEnd": "Repeat",
+			"keyframes": [
+				{
+					"frame": 0,
+					"elements": {
+						"UpperTorso": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 12.0, "rotationZ": 13.0 },
+						"UpperArmR": { "offsetX": -2.0, "offsetY": 1.5, "offsetZ": -1.0, "rotationX": -5.0, "rotationY": -11.0, "rotationZ": -75.0 },
+						"LowerArmR": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -28.0 },
+						"UpperArmL": { "offsetX": 0.0, "offsetY": 4.0, "offsetZ": 1.0, "rotationX": -19.0, "rotationY": -12.0, "rotationZ": -54.0 },
+						"LowerArmL": { "offsetX": 0.0, "offsetY": 1.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -44.0 },
+						"Neck": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
+						"Head": { "offsetX": 0.7, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": -3.0, "rotationY": -8.0, "rotationZ": -3.0 },
+						"LowerFootL": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
+						"ItemAnchor": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 80.0 }
+					}
+				},
+				{
+					"frame": 10,
+					"elements": {
+						"UpperTorso": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 8.0 },
+						"UpperArmR": { "offsetX": 1.0, "offsetY": 2.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -12.0, "rotationZ": -25.0 },
+						"LowerArmR": { "offsetX": 0.0, "offsetY": 1.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 18.0, "rotationZ": -87.0 },
+						"UpperArmL": { "offsetX": 0.0, "offsetY": 4.0, "offsetZ": 1.0, "rotationX": -17.0, "rotationY": -4.0, "rotationZ": -42.0 },
+						"LowerArmL": { "offsetX": 0.0, "offsetY": 1.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -44.0 },
+						"Neck": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
+						"Head": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 6.0 },
+						"LowerFootL": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
+						"ItemAnchor": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 83.0 }
+					}
+				}
+			]
+		
+	}
+}
+]

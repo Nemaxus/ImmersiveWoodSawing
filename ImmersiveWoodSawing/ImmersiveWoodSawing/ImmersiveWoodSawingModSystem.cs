@@ -16,7 +16,7 @@ namespace ImmersiveWoodSawing
     {
         ModConfig config = new ModConfig();
         public readonly Dictionary<string, CraftingRecipeIngredient> sawingRecipes = new Dictionary<string, CraftingRecipeIngredient>();
-
+        public readonly List<string> logTypes = new();
         public override void StartPre(ICoreAPI api)
         {
             base.StartPre(api);
@@ -80,20 +80,29 @@ namespace ImmersiveWoodSawing
                         icode = ingredient.Code;
                         ipath = icode.Path;
 
-                        if (ipath.StartsWith("log-"))
+                        if (ingredient.IsTool) continue;
+                        if (ingredient.ResolvedItemstack.Block == null) continue;
+
+                        var variant = ingredient.ResolvedItemstack.Block.Variant;
+                        if(!variant.ContainsKey("rotation")) continue;
+
+                        string genIngredient = ingredient.Code.ToString().Replace("-ne", "-*").Replace("-ud", "-*");
+                        if (!sawingRecipes.ContainsKey(genIngredient))
                         {
-                            string genIngredient = ingredient.Code.ToString().Replace("-ud", "-*");
-                            if (!sawingRecipes.ContainsKey(genIngredient))
-                            {
-                                sawingRecipes.Add(genIngredient, grecipe.Output);
-                            }
-                            else
-                            {
-                                sawingRecipes[genIngredient] = grecipe.Output;
-                            }
-                            grecipe.Enabled = enabled;
-                            grecipe.ShowInCreatedBy = enabled;
+                            sawingRecipes.Add(genIngredient, grecipe.Output);
                         }
+                        else
+                        {
+                            sawingRecipes[genIngredient] = grecipe.Output;
+                        }
+
+                        if (!logTypes.Contains(ingredient.Code.FirstCodePart()))
+                        {
+                            logTypes.Add(ingredient.Code.FirstCodePart());
+                        }
+                        grecipe.Enabled = enabled;
+                        grecipe.ShowInCreatedBy = enabled;
+                        /*
                         else if (ipath.StartsWith("logsection-placed-"))
                         {
                             //if (!ipath.Contains('*'))
@@ -110,7 +119,7 @@ namespace ImmersiveWoodSawing
                             }
                             grecipe.Enabled = enabled;
                             grecipe.ShowInCreatedBy = enabled;
-                        }
+                        }*/
                     }
                 }
             }
@@ -131,8 +140,7 @@ namespace ImmersiveWoodSawing
                     block.BlockBehaviors = block.BlockBehaviors.Append(behaviour);
                     continue;
                 }
-                if (block.Code.Path.StartsWith("log-placed") ||
-                    block.Code.Path.StartsWith("logsection-placed"))
+                if (logTypes.Contains(block.Code.FirstCodePart()))
                 {
                     CraftingRecipeIngredient planksResult = null;
 

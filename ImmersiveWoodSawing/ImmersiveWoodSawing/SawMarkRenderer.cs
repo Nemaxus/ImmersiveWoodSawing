@@ -57,7 +57,7 @@ namespace ImmersiveWoodSawing
             prog.ModelMatrix = ModelMat
                 .Identity()
                 .Translate(pos.X - camPos.X, pos.Y - camPos.Y, pos.Z - camPos.Z)
-                .Translate(XOffset, YOffset, 0)
+                .Scale(1f, YOffset, 1f)
                 .Values
             ;
 
@@ -68,7 +68,7 @@ namespace ImmersiveWoodSawing
 
             if (!ShouldMove)
             {
-                YOffset = 0;
+                YOffset = 1f;
             }
             /*else
             {

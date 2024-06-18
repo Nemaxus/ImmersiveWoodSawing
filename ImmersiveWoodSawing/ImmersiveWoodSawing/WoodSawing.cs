@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
@@ -22,29 +23,51 @@ namespace ImmersiveWoodSawing
             IWorldAccessor world = byEntity.World;
             IBlockAccessor blockAccessor = world.BlockAccessor;
             Block block = blockAccessor.GetBlock(blockSel.Position);
-            if (IsSawable(block) && block is not SawableLog)
-            {
-                handling = EnumHandling.PreventDefault;
+            ICoreClientAPI coreClientAPI = byEntity.Api as ICoreClientAPI;
 
-                if (world.GetBlock(new AssetLocation(Constants.ModId + ":sawablelog")) is SawableLog slog)
+            if (!byEntity.Api.World.Claims.TryAccess((byEntity as EntityPlayer).Player, blockSel.Position, EnumBlockAccessFlags.BuildOrBreak))
+            {
+                if (coreClientAPI == null)
                 {
-                    blockAccessor.SetBlock(slog.BlockId, blockSel.Position);
-                    BESawableLog bESawableLog = blockAccessor.GetBlockEntity<BESawableLog>(blockSel.Position);
-                    bESawableLog.BlockStack = new ItemStack(block);
-                    blockAccessor.MarkBlockDirty(blockSel.Position);
-                    //If not refreshed it does not change the atribbutes valuses at first attempt
-                    block = blockAccessor.GetBlock(blockSel.Position);
+                    return;
                 }
+                coreClientAPI.TriggerIngameError(this, "notsawable-claimedland", Lang.Get(Constants.ModId + ":ingameerror-notsawable-claimedland"));
+                return;
             }
-
-            else if (block is SawableLog)
+            else
             {
-                handling = EnumHandling.PreventDefault;
-                //byEntity.WatchedAttributes.SetBool(Constants.ModId + ":issawing", true);
-                byEntity.WatchedAttributes.SetBool(Constants.ModId + ":sawnblock", false);
-                byEntity.WatchedAttributes.SetBool(Constants.ModId + ":sawforward", true);
+                if (!byEntity.Api.ModLoader.GetModSystem<ModSystemBlockReinforcement>(true).IsReinforced(blockSel.Position))
+                {
+                    if (IsSawable(block) && !(block is SawableLog))
+                    {
+                        handling = EnumHandling.PreventDefault;
+                        SawableLog slog = world.GetBlock(new AssetLocation(Constants.ModId + ":sawablelog")) as SawableLog;
+                        if (slog != null)
+                        {
+                            blockAccessor.SetBlock(slog.BlockId, blockSel.Position);
+                            blockAccessor.GetBlockEntity<BESawableLog>(blockSel.Position).BlockStack = new ItemStack(block, 1);
+                            blockAccessor.MarkBlockDirty(blockSel.Position);
+                            block = blockAccessor.GetBlock(blockSel.Position);
+                        }
+                    }
+                    if (block is SawableLog)
+                    {
+                        handling = EnumHandling.PreventDefault;
+                        byEntity.Attributes.SetBool(Constants.ModId + ":sawnblock", false);
+                        byEntity.Attributes.SetBool(Constants.ModId + ":registeredcallback", false);
+                        byEntity.StartAnimation("immersivewoodsawing");
+                    }
+                    return;
+                }
+                if (coreClientAPI == null)
+                {
+                    return;
+                }
+                coreClientAPI.TriggerIngameError(this, "notsawable-reinforced", Lang.Get(Constants.ModId + ":ingameerror-notsawable-reinforced"));
+                return;
 
 
+                /*
                 //DELETE AFTER TESTING ======
                 BESawableLog beslog = (blockAccessor.GetBlockEntity(blockSel.Position)) as BESawableLog;
                 IPlayer byPlayer = (byEntity as EntityPlayer).Player;
@@ -63,11 +86,11 @@ namespace ImmersiveWoodSawing
                     }
                     blockAccessor.MarkBlockDirty(blockSel.Position);
                 }
-                //DELETE AFTER TESTING ======
+                //DELETE AFTER TESTING ======*/
             }
 
         }
-        /*
+
         public override bool OnHeldInteractStep(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandling handling)
         {
             IPlayer byPlayer = (byEntity as EntityPlayer).Player;
@@ -81,58 +104,63 @@ namespace ImmersiveWoodSawing
                 BESawableLog beslog = (blockAccessor.GetBlockEntity(blockSel.Position)) as BESawableLog;
                 if (block is SawableLog)
                 {
-                    int planksToCreate = GameMath.Clamp(world.Config.GetInt(Constants.ModId + ":PlanksPerUse", 1), 1, beslog.PlanksTotalAmount);
-                    int planksToTakeOut = (beslog.PlanksAmount - planksToCreate >= 0) ? planksToCreate : beslog.PlanksAmount;
+                    int planksToTakeOut = beslog.PlanksToTakeOut;
 
-                    //TEMP
-                    float sawSpeedMultiplier = 1f;
-                    //TEMP
-                    float preparationStage = 0.6f;
+                    float sawSpeedMultiplier = world.Config.GetFloat(Constants.ModId + ":" + "SawSpeedMultilier");
 
+                    float preparationStage = 0.4f;
                     float sawingSpeed = 15f / sawtool.ToolTier / sawSpeedMultiplier;
                     float progress = (secondsUsed - preparationStage) / sawingSpeed;
 
-                    if (world.Side == EnumAppSide.Client)
+                    if (world.Side == EnumAppSide.Client && secondsUsed > preparationStage)
                     {
-                        AnimationStep(secondsUsed, byEntity, sawtool.ToolTier);
-                        if (secondsUsed > preparationStage)
+                        beslog.IsProcessing(true);
+                        beslog.renderer.YOffset = 1f - progress;
+                        AnimationMetaData animData;
+                        string anim = byEntity.AnimManager.ActiveAnimationsByAnimCode.TryGetValue("immersivewoodsawing-fp", out animData) ? "immersivewoodsawing-fp" : "immersivewoodsawing";
+                        bool triggeredSawSound = byEntity.Attributes.GetBool(Constants.ModId + ":registeredcallback", false);
+                        bool flag = byEntity.AnimManager.Animator.GetAnimationState(anim).CurrentFrame > getSourceFrame(byEntity, anim, "soundAtFrame");
+                        if (flag && !triggeredSawSound)
                         {
-                            beslog.IsProcessing(true);
-                            beslog.renderer.YOffset = -progress;
-
-                            world.SpawnParticles(ParticleProvider.GetParticleProperties(blockAccessor, blockSel, block, byEntity, secondsUsed, sawingSpeed, beslog.LogSliceSize * planksToTakeOut));
+                            world.SpawnParticles(ParticleProvider.GetParticleProperties(blockAccessor, blockSel, block, byEntity, secondsUsed, sawingSpeed, beslog.LogSliceSize * (float)planksToTakeOut, true), null);
+                            playSawSound(byEntity);
+                            byEntity.Attributes.SetBool(Constants.ModId + ":registeredcallback", true);
+                        }
+                        if (!flag && triggeredSawSound)
+                        {
+                            world.SpawnParticles(ParticleProvider.GetParticleProperties(blockAccessor, blockSel, block, byEntity, secondsUsed, sawingSpeed, beslog.LogSliceSize * (float)planksToTakeOut, false), null);
+                            byEntity.Attributes.SetBool(Constants.ModId + ":registeredcallback", false);
                         }
                     }
                     if (world.Side == EnumAppSide.Server)
                     {
-
-                        if (progress > 0.99f && byEntity.WatchedAttributes.GetBool(Constants.ModId + ":sawnblock") == false)
+                        if (progress > 0.99f && !byEntity.Attributes.GetBool(Constants.ModId + ":sawnblock", false))
                         {
-
                             Item plank = byEntity.World.GetItem(beslog.PlankType);
-
-                            if (beslog.PlanksAmount > 0)
+                            if (beslog.PlanksLeft > 0)
                             {
-
+                                beslog.PlanksLeft -= planksToTakeOut;
+                                if (beslog.PlanksLeft - planksToTakeOut <= 0)
+                                {
+                                    planksToTakeOut += beslog.PlanksLeft;
+                                    beslog.PlanksLeft = 0;
+                                }
                                 for (int i = 0; i < planksToTakeOut; i++)
                                 {
-                                    world.SpawnItemEntity(new ItemStack(plank, 1), blockSel.Position.ToVec3d());
+                                    world.SpawnItemEntity(new ItemStack(plank, 1), blockSel.Position.ToVec3d(), null);
                                 }
-                                beslog.PlanksAmount -= planksToTakeOut;
-
                             }
-                            if (beslog.PlanksAmount <= 0)
+                            if (beslog.PlanksLeft <= 0)
                             {
-
-                                blockAccessor.BreakBlock(blockSel.Position, (byEntity as EntityPlayer).Player, 0);
+                                blockAccessor.BreakBlock(blockSel.Position, (byEntity as EntityPlayer).Player, 0f);
                                 if (world.Config.TryGetBool(Constants.ModId + ":AutoLogPlacement") == true)
                                 {
                                     PlaceNextLog(byEntity, byPlayer, blockAccessor, blockSel);
                                 }
                                 blockAccessor.MarkBlockDirty(blockSel.Position);
                             }
-                            sawtool.DamageItem(world, byEntity, byEntity.RightHandItemSlot);
-                            byEntity.WatchedAttributes.SetBool(Constants.ModId + ":sawnblock", true);
+                            sawtool.DamageItem(world, byEntity, byEntity.RightHandItemSlot, 1);
+                            byEntity.Attributes.SetBool(Constants.ModId + ":sawnblock", true);
                         }
                     }
                     handling = EnumHandling.PreventSubsequent;
@@ -141,9 +169,10 @@ namespace ImmersiveWoodSawing
             }
             return false;
         }
-        */
+
         public override void OnHeldInteractStop(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandling handling)
         {
+            byEntity.StopAnimation("immersivewoodsawing");
             if (blockSel != null)
             {
                 if (byEntity.World.BlockAccessor.GetBlockEntity(blockSel?.Position) is BESawableLog sawableLog)
@@ -156,6 +185,7 @@ namespace ImmersiveWoodSawing
 
         public override bool OnHeldInteractCancel(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, EnumItemUseCancelReason cancelReason, ref EnumHandling handled)
         {
+            byEntity.StopAnimation("immersivewoodsawing");
             if (blockSel != null)
             {
                 if (byEntity.World.BlockAccessor.GetBlockEntity(blockSel?.Position) is BESawableLog sawableLog)
@@ -264,5 +294,29 @@ namespace ImmersiveWoodSawing
             };
         }
 
+        public static float getSourceFrame(EntityAgent byEntity, string animCode, string framecode)
+        {
+            AnimationMetaData animdata;
+            if (byEntity.Properties.Client.AnimationsByMetaCode.TryGetValue(animCode, out animdata))
+            {
+                JsonObject attributes = animdata.Attributes;
+                if (attributes != null && attributes[framecode].Exists)
+                {
+                    return animdata.Attributes[framecode].AsFloat(-1f);
+                }
+            }
+            return -1f;
+        }
+
+        protected void playSawSound(EntityAgent byEntity)
+        {
+            IPlayer byPlayer = (byEntity as EntityPlayer).Player;
+            if (byPlayer == null)
+            {
+                return;
+            }
+            byPlayer.Entity.World.PlaySoundAt(new AssetLocation(Constants.ModId, "sounds/saw_combined"), byPlayer.Entity, byPlayer, 0.9f + (float)byEntity.World.Rand.NextDouble() * 0.2f, 16f, 0.35f);
+
+        }
     }
 }
