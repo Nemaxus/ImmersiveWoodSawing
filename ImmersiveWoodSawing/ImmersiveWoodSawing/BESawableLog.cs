@@ -118,14 +118,8 @@ namespace ImmersiveWoodSawing
         public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
         {
             base.GetBlockInfo(forPlayer, dsc);
-            if (forPlayer.Entity.Controls.ShiftKey)
-            {
-                dsc.AppendLine("This is not a log");
-                dsc.AppendLine("Copied from: " + blockStack.Block.Code.ToString());
-                dsc.AppendLine("Plank Type: " + plankType);
-                dsc.AppendLine("Planks Left: " + planksLeft);
-            }
-            dsc.AppendLine(blockStack.Block.GetPlacedBlockInfo(Api.World, forPlayer.CurrentBlockSelection.Position, forPlayer));
+            
+            //dsc.AppendLine(blockStack.Block.GetPlacedBlockInfo(Api.World, forPlayer.CurrentBlockSelection.Position, forPlayer));
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree)
@@ -164,16 +158,19 @@ namespace ImmersiveWoodSawing
             float meshOffset = logSliceSize * (planksTotal - planksLeft);
             float offset = meshOffset * Constants.BlockProportion;
 
-            int planksToCreate = GameMath.Clamp(Api.World.Config.GetInt(Constants.ModId + ":PlanksPerUse", 1), 1, planksTotal);
-            int planksToTake = (planksLeft - planksToCreate >= 0) ? planksToCreate : planksLeft;
-            planksToTakeOut = planksToTake;
+            if (Api != null)
+            {
+                int planksToCreate = GameMath.Clamp(Api.World.Config.GetInt(Constants.ModId + ":PlanksPerUse", 1), 1, planksTotal);
+                int planksToTake = (planksLeft - planksToCreate >= 0) ? planksToCreate : planksLeft;
+                planksToTakeOut = planksToTake;
+            }
 
             if (Api is ICoreClientAPI capi && blockStack != null)
             {
 
 
                 Shape referenceShape = capi.Assets.Get<Shape>(new AssetLocation(blockStack.Block.Shape.Base.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json").ToString()));
-                Shape completeBlockShape = ResolveShapeElementsSizes(GetShape(capi, "complete"), meshOffset, (float)planksToTake * logSliceSize, referenceShape);
+                Shape completeBlockShape = ResolveShapeElementsSizes(GetShape(capi, "complete"), meshOffset,planksToTakeOut * logSliceSize, referenceShape);
                 Shape blockShape = CopyElementsFromShape(completeBlockShape, GetShape(capi, "sawablelog"));
                 Shape rendererShape = CopyElementsFromShape(completeBlockShape, GetShape(capi, "sawmark"));
                 renderer.UpdateRendererMesh(GenRendererMesh(rendererShape));
@@ -183,15 +180,6 @@ namespace ImmersiveWoodSawing
                 capi.Tesselator.TesselateShape("sawablelog", blockShape, out blockMesh, source);
 
             }
-            /*   
-                Shape referenceShape = capi.Assets.Get<Shape>(new AssetLocation(this.blockStack.Block.Shape.Base.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json").ToString()));
-                Shape completeBlockShape = this.ResolveShapeElementsSizes(this.GetShape(capi, "complete"), meshOffset, (float)this.planksToTakeOut * this.logSliceSize, referenceShape);
-                Shape blockShape = this.CopyElementsFromShape(completeBlockShape, this.GetShape(capi, "sawablelog"));
-                Shape rendererShape = this.CopyElementsFromShape(completeBlockShape, this.GetShape(capi, "sawmark"));
-                this.renderer.UpdateRendererMesh(this.GenRendererMesh(rendererShape));
-                ITexPositionSource source = capi.Tesselator.GetTextureSource(this.blockStack.Block, 0, false);
-                capi.Tesselator.TesselateShape("sawablelog", blockShape, out this.blockMesh, source, null, 0, 0, 0, null, null);
-            }*/
             MarkDirty(true);
             if (Block is SawableLog)
             {

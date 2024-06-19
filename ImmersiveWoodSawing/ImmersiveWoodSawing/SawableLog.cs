@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -58,6 +60,26 @@ namespace ImmersiveWoodSawing
             }
             int b = base.GetRandomColor(capi, pos, facing, rndIndex);
             return b;
+        }
+
+        public override string GetPlacedBlockInfo(IWorldAccessor world, BlockPos pos, IPlayer forPlayer)
+        {
+            var be = world.BlockAccessor.GetBlockEntity<BESawableLog>(pos);
+            if (be != null)
+            {
+                StringBuilder dsc = new StringBuilder();
+
+                if (forPlayer.Entity.Controls.ShiftKey)
+                {
+                    dsc.AppendLine("This is not a log");
+                    dsc.AppendLine("Copied from: " + be.BlockStack.Block.Code.ToString());
+                    dsc.AppendLine("Plank Type: " + be.PlankType);
+                    dsc.AppendLine("Planks Left: " + be.PlanksLeft);
+                }
+                dsc.AppendLine(be.BlockStack.Block.GetPlacedBlockInfo(world, pos, forPlayer));
+                return dsc.ToString();
+            }
+            return base.GetPlacedBlockInfo(world, pos, forPlayer);
         }
 
     }

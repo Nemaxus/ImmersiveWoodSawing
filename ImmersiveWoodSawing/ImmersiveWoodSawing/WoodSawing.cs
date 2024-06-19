@@ -59,11 +59,12 @@ namespace ImmersiveWoodSawing
                     }
                     return;
                 }
-                if (coreClientAPI == null)
+                else
                 {
-                    return;
+                    if (coreClientAPI == null) return;
+                    coreClientAPI.TriggerIngameError(this, "notsawable-reinforced", Lang.Get(Constants.ModId + ":ingameerror-notsawable-reinforced"));
                 }
-                coreClientAPI.TriggerIngameError(this, "notsawable-reinforced", Lang.Get(Constants.ModId + ":ingameerror-notsawable-reinforced"));
+
                 return;
 
 
@@ -163,6 +164,7 @@ namespace ImmersiveWoodSawing
                             byEntity.Attributes.SetBool(Constants.ModId + ":sawnblock", true);
                         }
                     }
+
                     handling = EnumHandling.PreventSubsequent;
                     return progress <= 1f;
                 }
