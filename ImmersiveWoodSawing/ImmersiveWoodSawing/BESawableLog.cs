@@ -23,7 +23,8 @@ namespace ImmersiveWoodSawing
 
         private MeshData blockMesh;
 
-        public Cuboidf[] Boxes { get; private set; }
+        public Cuboidf[] ColBox { get; private set; }
+        public Cuboidf[] SelBox { get; private set; }
 
         public float LogSliceSize
         {
@@ -79,7 +80,8 @@ namespace ImmersiveWoodSawing
 
         public BESawableLog() : base()
         {
-            Boxes = new Cuboidf[] { new Cuboidf(0, 0, 0, 1, 1, 1) };
+            ColBox = new Cuboidf[] { new Cuboidf(0, 0, 0, 1, 1, 1) };
+            SelBox = new Cuboidf[] { new Cuboidf(0, 0, 0, 1, 1, 1) };
         }
         public override void Initialize(ICoreAPI api)
         {
@@ -185,8 +187,10 @@ namespace ImmersiveWoodSawing
 
             if (Block is SawableLog)
             {
-                Boxes[0] = blockStack.Block.CollisionBoxes[0].Clone();
-                Boxes[0].X1 += meshOffset * Constants.BlockProportion;
+                ColBox[0] = blockStack.Block.CollisionBoxes[0].Clone();
+                SelBox[0] = blockStack.Block.SelectionBoxes[0].Clone();
+                ColBox[0].X1 += meshOffset * Constants.BlockProportion;
+                SelBox[0].X1 += meshOffset * Constants.BlockProportion;
             }
         }
 
@@ -220,6 +224,7 @@ namespace ImmersiveWoodSawing
 
             //Step 2) Make adjustments for textures types, their rotarion, position, etc.
             bool isLogSection = blockStack.Block.Code.Path.Contains("logsection");
+            bool isLog = blockStack.Block.Code.Path.Contains("log-");
             for (int i = 0; i < BlockFacing.ALLFACES.Length; i++)
             {
                 ShapeElementFace resizablePartFace = resizablePart.FacesResolved[i];
@@ -229,6 +234,8 @@ namespace ImmersiveWoodSawing
                 resizablePartFace.Texture = refShapeElementFace.Texture;
                 sawablePartFace.Texture = resizablePartFace.Texture;
                 sawmarkPartFace.Texture = sawablePartFace.Texture;
+
+                float uvToSideSizeRatio = (float)(Math.Abs(refShapeElementFace.Uv[0] - refShapeElementFace.Uv[2]) / Math.Abs(refShapeElement.From[0] - refShapeElement.To[0])); 
                 if (i == BlockFacing.indexEAST || i == BlockFacing.indexWEST)
                 {
                     bool hasInsideTextureVariant = blockStack.Block.Textures.ContainsKey("inside-" + sawablePartFace.Texture);
@@ -254,7 +261,7 @@ namespace ImmersiveWoodSawing
                 }
                 else
                 {
-                    if (i == BlockFacing.indexUP && !isLogSection)
+                    if (i == BlockFacing.indexUP && isLog)
                     {
                         resizablePartFace.Rotation = 180f;
                         sawablePartFace.Rotation = 180f;
@@ -270,7 +277,7 @@ namespace ImmersiveWoodSawing
                     int textureInitIndexForSawablePart;
                     int textureEndIndexForSawablePart;
 
-                    if (resizablePartFace.Uv[0] == 0f|| resizablePartFace.Uv[0] == Math.Abs( refShapeElement.From[0] - refShapeElement.To[0]))
+                    if (resizablePartFace.Uv[0] == 0f|| resizablePartFace.Uv[0] == 16f)
                     {
                         textureInitIndexForResizablePart = 0;
                         textureEndIndexForResizablePart = 2;
@@ -302,9 +309,9 @@ namespace ImmersiveWoodSawing
                     }
                     int faceDirection = BlockFacing.ALLNORMALI[i].X + BlockFacing.ALLNORMALI[i].Y + BlockFacing.ALLNORMALI[i].Z;
                     resizablePartFace.Uv[textureInitIndexForResizablePart] = refShapeElementFace.Uv[textureInitIndexForResizablePart];
-                    resizablePartFace.Uv[textureEndIndexForResizablePart] = resizablePartFace.Uv[textureInitIndexForResizablePart] - ResizablePartXLength * (float)faceDirection * (isLogSection ? 0.5f : 1f);
-                    sawablePartFace.Uv[textureInitIndexForSawablePart] = resizablePartFace.Uv[textureInitIndexForResizablePart] - (ResizablePartXLength + SawablePartWithSawmarkXLength) * (float)faceDirection * (isLogSection ? 0.5f : 1f);
-                    sawablePartFace.Uv[textureEndIndexForSawablePart] = resizablePartFace.Uv[textureInitIndexForResizablePart] - (ResizablePartXLength + sawmarkXLength) * (float)faceDirection * (isLogSection ? 0.5f : 1f);
+                    resizablePartFace.Uv[textureEndIndexForResizablePart] = resizablePartFace.Uv[textureInitIndexForResizablePart] - ResizablePartXLength * (float)faceDirection * uvToSideSizeRatio;//(isLogSection ? 0.5f : 1f);
+                    sawablePartFace.Uv[textureInitIndexForSawablePart] = resizablePartFace.Uv[textureInitIndexForResizablePart] - (ResizablePartXLength + SawablePartWithSawmarkXLength) * (float)faceDirection * uvToSideSizeRatio;
+                    sawablePartFace.Uv[textureEndIndexForSawablePart] = resizablePartFace.Uv[textureInitIndexForResizablePart] - (ResizablePartXLength + sawmarkXLength) * (float)faceDirection * uvToSideSizeRatio;
                     sawmarkPartFace.Uv[textureInitIndexForSawmarkPart] = resizablePartFace.Uv[textureEndIndexForResizablePart];
                     sawmarkPartFace.Uv[textureEndIndexForSawmarkPart] = sawablePartFace.Uv[textureEndIndexForSawablePart];
                     resizablePartFace.Uv[1] = (sawablePartFace.Uv[1] = (sawmarkPartFace.Uv[1] = refShapeElementFace.Uv[1]));

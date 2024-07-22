@@ -18,7 +18,7 @@ namespace ImmersiveWoodSawing
             var be = blockAccessor.GetBlockEntity<BESawableLog>(pos);
             if (be != null)
             {
-                return be.Boxes;
+                return be.ColBox;
             }
             return base.GetCollisionBoxes(blockAccessor, pos);
         }
@@ -27,7 +27,7 @@ namespace ImmersiveWoodSawing
             var be = blockAccessor.GetBlockEntity<BESawableLog>(pos);
             if (be != null)
             {
-                return be.Boxes;
+                return be.SelBox;
             }
             return base.GetCollisionBoxes(blockAccessor, pos);
         }
@@ -37,7 +37,7 @@ namespace ImmersiveWoodSawing
             var be = blockAccessor.GetBlockEntity<BESawableLog>(pos);
             if (be != null)
             {
-                return be.Boxes;
+                return be.ColBox;
             }
             return base.GetParticleCollisionBoxes(blockAccessor, pos);
         }
@@ -94,7 +94,7 @@ namespace ImmersiveWoodSawing
             for (int i = s.Elements.Length; i > 0; i--)
             {
                 var el = s.Elements[i-1];
-                int b = 2;
+                int b = 4;
                 sb.Append($"{el.Name} Uv {BlockFacing.ALLFACES[b].ToString()}: ");
                     el.FacesResolved[b].Uv.Foreach((x) =>
                 {
