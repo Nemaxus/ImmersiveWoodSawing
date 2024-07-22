@@ -66,7 +66,9 @@ namespace ImmersiveWoodSawing
                     BlockBehaviorSawable behavior = blockStack.Block.GetBehavior(typeof(BlockBehaviorSawable), true) as BlockBehaviorSawable;
                     plankType = behavior.drop;
                     planksTotal = planksLeft = behavior.dropAmount;
-                    logSliceSize = 16f / planksTotal;
+                    var box = blockStack.Block.CollisionBoxes[0];
+                    logSliceSize = (Math.Abs(box.X1 - box.X2)) *
+                        16f / planksTotal;
                 }
                 UpdateBlockMesh();
             }
@@ -89,7 +91,6 @@ namespace ImmersiveWoodSawing
                 {
                     ShouldRender = true
                 };
-
                 (api as ICoreClientAPI).Event.RegisterRenderer(renderer, EnumRenderStage.Opaque, "sawmark");
             }
 
@@ -118,7 +119,7 @@ namespace ImmersiveWoodSawing
         public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
         {
             base.GetBlockInfo(forPlayer, dsc);
-            
+
             //dsc.AppendLine(blockStack.Block.GetPlacedBlockInfo(Api.World, forPlayer.CurrentBlockSelection.Position, forPlayer));
         }
 
@@ -156,7 +157,6 @@ namespace ImmersiveWoodSawing
         {
 
             float meshOffset = logSliceSize * (planksTotal - planksLeft);
-            float offset = meshOffset * Constants.BlockProportion;
 
             if (Api != null)
             {
@@ -170,7 +170,7 @@ namespace ImmersiveWoodSawing
 
 
                 Shape referenceShape = capi.Assets.Get<Shape>(new AssetLocation(blockStack.Block.Shape.Base.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json").ToString()));
-                Shape completeBlockShape = ResolveShapeElementsSizes(GetShape(capi, "complete"), meshOffset,planksToTakeOut * logSliceSize, referenceShape);
+                Shape completeBlockShape = ResolveShapeElementsSizes(GetShape(capi, "complete"), meshOffset, planksToTakeOut * logSliceSize, referenceShape);
                 Shape blockShape = CopyElementsFromShape(completeBlockShape, GetShape(capi, "sawablelog"));
                 Shape rendererShape = CopyElementsFromShape(completeBlockShape, GetShape(capi, "sawmark"));
                 renderer.UpdateRendererMesh(GenRendererMesh(rendererShape));
@@ -180,15 +180,17 @@ namespace ImmersiveWoodSawing
                 capi.Tesselator.TesselateShape("sawablelog", blockShape, out blockMesh, source);
 
             }
+
             MarkDirty(true);
+
             if (Block is SawableLog)
             {
-                Boxes[0] = Block.CollisionBoxes[0].Clone();
-                Boxes[0].X1 = offset;
+                Boxes[0] = blockStack.Block.CollisionBoxes[0].Clone();
+                Boxes[0].X1 += meshOffset * Constants.BlockProportion;
             }
         }
 
-        private Shape ResolveShapeElementsSizes(Shape shape, float meshOffset, float SawablePartWithSawmarkXLength, Shape referenceShape)
+        public Shape ResolveShapeElementsSizes(Shape shape, float meshOffset, float SawablePartWithSawmarkXLength, Shape referenceShape)
         {
             //Step 1) Get part proportions for our block
             ShapeElement resizablePart = shape.GetElementByName("ResizablePart");
@@ -198,17 +200,26 @@ namespace ImmersiveWoodSawing
 
 
             //Need to take in account the size of sawmark X length when changing its position(and setting the size of this part as well)
+            foreach (var elem in shape.Elements)
+            {
+                for (int i = 1; i < elem.From.Length; i++)
+                {
+                    elem.From[i] = refShapeElement.From[i];
+                    elem.To[i] = refShapeElement.To[i];
+                }
+            }
+            resizablePart.To[0] = refShapeElement.To[0];
 
-            resizablePart.From[0] = (double)(SawablePartWithSawmarkXLength + meshOffset);
-            float ResizablePartXLength = (float)(resizablePart.To[0] - resizablePart.From[0]);
-            float sawmarkXLength = (float)(sawmarkPart.To[0] - sawmarkPart.From[0]);
-            sawablePart.From[0] = (double)meshOffset;
-            sawablePart.To[0] = (double)(SawablePartWithSawmarkXLength - sawmarkXLength + meshOffset);
+            resizablePart.From[0] = resizablePart.To[0] - Math.Abs(refShapeElement.From[0] - refShapeElement.To[0]) + SawablePartWithSawmarkXLength + meshOffset;
+            float ResizablePartXLength = (float)Math.Abs(resizablePart.To[0] - resizablePart.From[0]);
+            float sawmarkXLength = (float)Math.Abs(sawmarkPart.To[0] - sawmarkPart.From[0]);
+            sawablePart.From[0] = meshOffset + refShapeElement.From[0];
+            sawablePart.To[0] = SawablePartWithSawmarkXLength - sawmarkXLength + sawablePart.From[0];
             sawmarkPart.To[0] = resizablePart.From[0];
-            sawmarkPart.From[0] = sawablePart.To[0];
+            sawmarkPart.From[0] = sawmarkPart.To[0] - sawmarkXLength;
 
             //Step 2) Make adjustments for textures types, their rotarion, position, etc.
-            bool isLogSection = this.blockStack.Block.Code.Path.Contains("logsection");
+            bool isLogSection = blockStack.Block.Code.Path.Contains("logsection");
             for (int i = 0; i < BlockFacing.ALLFACES.Length; i++)
             {
                 ShapeElementFace resizablePartFace = resizablePart.FacesResolved[i];
@@ -218,13 +229,13 @@ namespace ImmersiveWoodSawing
                 resizablePartFace.Texture = refShapeElementFace.Texture;
                 sawablePartFace.Texture = resizablePartFace.Texture;
                 sawmarkPartFace.Texture = sawablePartFace.Texture;
-                if (i == 1 || i == 3)
+                if (i == BlockFacing.indexEAST || i == BlockFacing.indexWEST)
                 {
-                    bool hasInsideTextureVariant = this.blockStack.Block.Textures.ContainsKey("inside-" + sawablePartFace.Texture);
+                    bool hasInsideTextureVariant = blockStack.Block.Textures.ContainsKey("inside-" + sawablePartFace.Texture);
                     string insideTexture = "inside" + ((!isLogSection && hasInsideTextureVariant) ? ("-" + sawablePartFace.Texture) : "");
                     if (isLogSection || hasInsideTextureVariant)
                     {
-                        if (i == 1)
+                        if (i == BlockFacing.indexEAST)
                         {
                             sawablePartFace.Texture = insideTexture;
                         }
@@ -243,7 +254,7 @@ namespace ImmersiveWoodSawing
                 }
                 else
                 {
-                    if (i == 4 && !isLogSection)
+                    if (i == BlockFacing.indexUP && !isLogSection)
                     {
                         resizablePartFace.Rotation = 180f;
                         sawablePartFace.Rotation = 180f;
@@ -254,7 +265,12 @@ namespace ImmersiveWoodSawing
                     }
                     int textureInitIndexForResizablePart;
                     int textureEndIndexForResizablePart;
-                    if (resizablePartFace.Uv[0] == 0f || resizablePartFace.Uv[0] == 16f)
+                    int textureInitIndexForSawmarkPart;
+                    int textureEndIndexForSawmarkPart;
+                    int textureInitIndexForSawablePart;
+                    int textureEndIndexForSawablePart;
+
+                    if (resizablePartFace.Uv[0] == 0f|| resizablePartFace.Uv[0] == Math.Abs( refShapeElement.From[0] - refShapeElement.To[0]))
                     {
                         textureInitIndexForResizablePart = 0;
                         textureEndIndexForResizablePart = 2;
@@ -264,8 +280,6 @@ namespace ImmersiveWoodSawing
                         textureInitIndexForResizablePart = 2;
                         textureEndIndexForResizablePart = 0;
                     }
-                    int textureInitIndexForSawmarkPart;
-                    int textureEndIndexForSawmarkPart;
                     if (sawmarkPartFace.Uv[0] == resizablePartFace.Uv[textureEndIndexForResizablePart])
                     {
                         textureInitIndexForSawmarkPart = 0;
@@ -276,8 +290,6 @@ namespace ImmersiveWoodSawing
                         textureInitIndexForSawmarkPart = 2;
                         textureEndIndexForSawmarkPart = 0;
                     }
-                    int textureInitIndexForSawablePart;
-                    int textureEndIndexForSawablePart;
                     if (sawablePartFace.Uv[0] == 0f || sawablePartFace.Uv[0] == 16f)
                     {
                         textureInitIndexForSawablePart = 0;
@@ -305,7 +317,7 @@ namespace ImmersiveWoodSawing
             return shape;
         }
 
-        private Shape GetShape(ICoreClientAPI capi, string type)
+        public Shape GetShape(ICoreClientAPI capi, string type)
         {
             AssetLocation shapeCode = new AssetLocation(Constants.ModId, "shapes/block/" + type + ".json");
             Shape shape = capi.Assets.Get<Shape>(shapeCode).Clone();

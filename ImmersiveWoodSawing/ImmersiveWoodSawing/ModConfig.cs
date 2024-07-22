@@ -1,9 +1,11 @@
-﻿using Vintagestory.API.Common;
-
+﻿using ProtoBuf;
+using Vintagestory.API.Common;
 namespace ImmersiveWoodSawing
 {
+    [ProtoContract]
     public class ModConfig
     {
+        [ProtoMember(1)]
         ImmersiveWoodSawingConfig config;
 
         public void ReadOrGenerateConfig(ICoreAPI api)
@@ -40,7 +42,11 @@ namespace ImmersiveWoodSawing
                 api.StoreModConfig(config, "ImmersiveWoodchoppingConfig.json");
             }*/
 
+            SetWorldConfig(api);
+        }
 
+        public void SetWorldConfig(ICoreAPI api)
+        {
             api.World.Config.SetBool(Constants.ModId + ":AutoLogPlacement", config.AutoLogPlacement);
             api.World.Config.SetInt(Constants.ModId + ":PlanksPerUse", config.PlanksPerUse);
             api.World.Config.SetBool(Constants.ModId + ":DisableGridRecipe", config.DisableGridRecipe);

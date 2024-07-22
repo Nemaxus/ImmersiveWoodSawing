@@ -6,6 +6,8 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.API.Util;
+using Vintagestory.Common;
 
 namespace ImmersiveWoodSawing
 {
@@ -45,7 +47,7 @@ namespace ImmersiveWoodSawing
             var be = world.BlockAccessor.GetBlockEntity<BESawableLog>(pos);
             if (be != null)
             {
-                return be.BlockStack.Block.GetPlacedBlockName(world,pos);
+                return be.BlockStack.Block.GetPlacedBlockName(world, pos);
             }
             return base.GetPlacedBlockName(world, pos);
         }
@@ -75,11 +77,36 @@ namespace ImmersiveWoodSawing
                     dsc.AppendLine("Copied from: " + be.BlockStack.Block.Code.ToString());
                     dsc.AppendLine("Plank Type: " + be.PlankType);
                     dsc.AppendLine("Planks Left: " + be.PlanksLeft);
+                    dsc.AppendLine(GenerateInfoString(be));
                 }
                 dsc.AppendLine(be.BlockStack.Block.GetPlacedBlockInfo(world, pos, forPlayer));
                 return dsc.ToString();
             }
             return base.GetPlacedBlockInfo(world, pos, forPlayer);
+        }
+
+        public string GenerateInfoString(BESawableLog be)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            float meshOffset = be.LogSliceSize * (be.PlanksTotal - be.PlanksLeft);
+            Shape s = be.ResolveShapeElementsSizes(be.GetShape(api as ICoreClientAPI, "complete"), meshOffset, be.PlanksToTakeOut * be.LogSliceSize, (api as ICoreClientAPI).Assets.Get<Shape>(new AssetLocation(be.BlockStack.Block.Shape.Base.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json").ToString())));
+            for (int i = s.Elements.Length; i > 0; i--)
+            {
+                var el = s.Elements[i-1];
+                int b = 2;
+                sb.Append($"{el.Name} Uv {BlockFacing.ALLFACES[b].ToString()}: ");
+                    el.FacesResolved[b].Uv.Foreach((x) =>
+                {
+                    sb.Append(x + "| ");
+                });
+                sb.AppendLine();
+                //sb.AppendLine($"{el.Name} part from: " + el.From[0].ToString("0.0"));
+                //sb.AppendLine($"{el.Name} part to: " + el.To[0].ToString("0.0"));
+                //sb.AppendLine($"{el.Name} part X size: " +Math.Abs(el.From[0] - el.To[0]).ToString("0.0"));
+                //sb.Append("\n");
+            }
+            return sb.ToString();
         }
 
     }

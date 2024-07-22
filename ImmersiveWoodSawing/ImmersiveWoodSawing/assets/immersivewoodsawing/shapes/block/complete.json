@@ -8,6 +8,7 @@
 	"textureSizes": {
 	},
 	"textures": {
+		"all": "game:unknown"
 	},
 	"elements": [
 		{

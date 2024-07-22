@@ -1,5 +1,8 @@
-﻿namespace ImmersiveWoodSawing
+﻿using ProtoBuf;
+
+namespace ImmersiveWoodSawing
 {
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class ImmersiveWoodSawingConfig
     {
         public bool AutoLogPlacement = false;

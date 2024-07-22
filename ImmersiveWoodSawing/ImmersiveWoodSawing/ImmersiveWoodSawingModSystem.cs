@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -17,10 +18,32 @@ namespace ImmersiveWoodSawing
         ModConfig config = new ModConfig();
         public readonly Dictionary<string, CraftingRecipeIngredient> sawingRecipes = new Dictionary<string, CraftingRecipeIngredient>();
         public readonly List<string> logTypes = new();
+
+        private IServerNetworkChannel schannel;
+        private IClientNetworkChannel cchannel;
+        private ICoreAPI _api = null;
         public override void StartPre(ICoreAPI api)
         {
             base.StartPre(api);
+            _api = api;
             config.ReadOrGenerateConfig(api);
+            if(api is ICoreServerAPI sApi)
+            {
+                schannel = sApi.Network.RegisterChannel(Constants.ModId + "-syncconfig")
+                    .RegisterMessageType<ModConfig>();
+            }
+            if (api is ICoreClientAPI cApi)
+            {
+                cchannel = cApi.Network.RegisterChannel(Constants.ModId + "-syncconfig")
+                    .RegisterMessageType<ModConfig>()
+                    .SetMessageHandler<ModConfig>(OnSyncConfigReceived);
+            }
+        }
+
+        private void OnSyncConfigReceived(ModConfig modConfig)
+        {
+            config = modConfig;
+            config.SetWorldConfig(_api as ICoreClientAPI);
         }
         public override void Start(ICoreAPI api)
         {
@@ -29,6 +52,14 @@ namespace ImmersiveWoodSawing
             api.RegisterBlockClass("SawableLog", typeof(SawableLog));
             api.RegisterBlockEntityClass("BESawableLog", typeof(BESawableLog));
 
+        }
+
+        public override void StartServerSide(ICoreServerAPI api)
+        {
+            api.Event.PlayerJoin += byPlayer =>
+            {
+                schannel.SendPacket(config, byPlayer);
+            };
         }
 
         public override double ExecuteOrder()
@@ -67,41 +98,30 @@ namespace ImmersiveWoodSawing
 
         public void GeneratePlanksRecipeList(ICoreAPI api)
         {
-            foreach (var grecipe in api.World.GridRecipes)
+            foreach (GridRecipe grecipe in api.World.GridRecipes)
             {
                 if (grecipe.Output.Code.Path.StartsWith("plank-"))
                 {
-                    AssetLocation icode;
-                    string ipath;
+                    
                     bool enabled = !api.World.Config.GetBool(Constants.ModId + ":DisableGridRecipe", true);
 
                     foreach (CraftingRecipeIngredient ingredient in grecipe.resolvedIngredients)
                     {
-                        icode = ingredient.Code;
-                        ipath = icode.Path;
 
                         if (ingredient.IsTool) continue;
-                        if (ingredient.ResolvedItemstack.Block == null) continue;
-
-                        var variant = ingredient.ResolvedItemstack.Block.Variant;
-                        if(!variant.ContainsKey("rotation")) continue;
-
-                        string genIngredient = ingredient.Code.ToString().Replace("-ne", "-*").Replace("-ud", "-*");
-                        if (!sawingRecipes.ContainsKey(genIngredient))
+                        if (ingredient.Type != EnumItemClass.Block) continue;
+                        
+                        if (ingredient.IsWildCard)
                         {
-                            sawingRecipes.Add(genIngredient, grecipe.Output);
+                            foreach(var alvariant in ingredient.AllowedVariants)
+                            RegisterRecipe(ingredient, grecipe, api.World.GetBlock(new AssetLocation(ingredient.Code.ToString().Replace("*",alvariant))), enabled);
                         }
                         else
                         {
-                            sawingRecipes[genIngredient] = grecipe.Output;
+                            RegisterRecipe(ingredient, grecipe, ingredient.ResolvedItemstack.Block, enabled);
                         }
-
-                        if (!logTypes.Contains(ingredient.Code.FirstCodePart()))
-                        {
-                            logTypes.Add(ingredient.Code.FirstCodePart());
-                        }
-                        grecipe.Enabled = enabled;
-                        grecipe.ShowInCreatedBy = enabled;
+                        //var variant = ingredient.ResolvedItemstack.Block.Variant;
+                        
                         /*
                         else if (ipath.StartsWith("logsection-placed-"))
                         {
@@ -172,6 +192,30 @@ namespace ImmersiveWoodSawing
                     }
                 }
             }
+        }
+
+        public void RegisterRecipe(CraftingRecipeIngredient ingredient, GridRecipe grecipe,Block block, bool enabled)
+        {
+            var variant = block?.Variant;
+
+            if (!variant.ContainsKey("rotation"))return;
+
+            string genIngredient = ingredient.Code.ToString().Replace("-ne", "-*").Replace("-ud", "-*");
+            if (!sawingRecipes.ContainsKey(genIngredient))
+            {
+                sawingRecipes.Add(genIngredient, grecipe.Output);
+            }
+            else
+            {
+                sawingRecipes[genIngredient] = grecipe.Output;
+            }
+
+            if (!logTypes.Contains(ingredient.Code.FirstCodePart()))
+            {
+                logTypes.Add(ingredient.Code.FirstCodePart());
+            }
+            grecipe.Enabled = enabled;
+            grecipe.ShowInCreatedBy = enabled;
         }
     }
 }
