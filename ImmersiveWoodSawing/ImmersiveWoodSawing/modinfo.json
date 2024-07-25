@@ -6,7 +6,7 @@
         "NemaxuswarZet"
     ],
     "description": "More immersive way to make plank from logs by sawing",
-    "version": "0.2.4",
+    "version": "0.2.5",
     "dependencies": {
         "game": "1.19.4"
     }

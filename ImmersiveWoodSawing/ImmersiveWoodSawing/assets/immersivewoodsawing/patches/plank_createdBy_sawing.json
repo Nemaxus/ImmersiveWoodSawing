@@ -1,8 +1,0 @@
-[
-{
-	"file" : "game:itemtypes/resource/plank.json",
-	"op" : "add",
-	"path" : "/attributes/handbook",
-	"value" : {"createdBy": "immersivewoodsawing:handbook-sawing-craftinfo"}
-}
-]

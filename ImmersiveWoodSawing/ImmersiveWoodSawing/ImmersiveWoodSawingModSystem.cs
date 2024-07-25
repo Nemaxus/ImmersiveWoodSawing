@@ -70,6 +70,7 @@ namespace ImmersiveWoodSawing
         public override void AssetsFinalize(ICoreAPI api)
         {
             GeneratePlanksRecipeList(api);
+            AssignHandbookAttributes(api);
             AssingDrops(api);
 
             if (api.Side == EnumAppSide.Server)
@@ -216,6 +217,38 @@ namespace ImmersiveWoodSawing
             }
             grecipe.Enabled = enabled;
             grecipe.ShowInCreatedBy = enabled;
+        }
+
+        //Thank you Tyron for providing me with an example for patching JsonObject and JToken nightmare in Attributes 0_o
+        public void AssignHandbookAttributes(ICoreAPI api)
+        {
+            /*
+            List<AssetLocation> firewoodOutputs = new();
+            foreach(var firewoodOutput in choppingRecipes.Values)
+            {
+                if (!firewoodOutputs.Contains(firewoodOutput.Code))
+                {
+                    firewoodOutputs.Add(firewoodOutput.Code);
+                }
+            }
+            */
+            foreach (var plankType in sawingRecipes.Values)
+            {
+                Item plank = api.World.GetItem(plankType.Code);
+                JToken token;
+                if (plank.Attributes?["handbook"].Exists != true)
+                {
+                    if (plank.Attributes == null) plank.Attributes = new JsonObject(JToken.Parse("{ handbook: {} }"));
+                    else
+                    {
+                        token = plank.Attributes.Token;
+                        token["handbook"] = JToken.Parse("{ }");
+                    }
+                }
+
+                token = plank.Attributes["handbook"].Token;
+                token["createdBy"] = JToken.FromObject(Constants.ModId + ":handbook-sawing-craftinfo");
+            }
         }
     }
 }
