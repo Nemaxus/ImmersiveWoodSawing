@@ -6,7 +6,7 @@ namespace ImmersiveWoodSawing
     public class ModConfig
     {
         [ProtoMember(1)]
-        ImmersiveWoodSawingConfig config;
+        public ImmersiveWoodSawingConfig config;
 
         public void ReadOrGenerateConfig(ICoreAPI api)
         {
@@ -51,6 +51,13 @@ namespace ImmersiveWoodSawing
             api.World.Config.SetInt(Constants.ModId + ":PlanksPerUse", config.PlanksPerUse);
             api.World.Config.SetBool(Constants.ModId + ":DisableGridRecipe", config.DisableGridRecipe);
             api.World.Config.SetFloat(Constants.ModId + ":SawSpeedMultilier", config.SawSpeedMultiplier);
+        }
+
+        public ModConfig Clone()
+        {
+            ModConfig cfg = new ModConfig();
+            cfg.config = new ImmersiveWoodSawingConfig(config);
+            return cfg;
         }
     }
 }

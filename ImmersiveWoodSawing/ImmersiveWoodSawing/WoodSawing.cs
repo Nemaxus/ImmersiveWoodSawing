@@ -11,8 +11,10 @@ namespace ImmersiveWoodSawing
 {
     class WoodSawing : CollectibleBehavior
     {
+        private float stressPoints;
         public WoodSawing(CollectibleObject collObj) : base(collObj)
         {
+            stressPoints = 0;
         }
 
         public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handHandling, ref EnumHandling handling)
@@ -140,12 +142,15 @@ namespace ImmersiveWoodSawing
                             Item plank = byEntity.World.GetItem(beslog.PlankType);
                             if (beslog.PlanksLeft > 0)
                             {
+
                                 beslog.PlanksLeft -= planksToTakeOut;
                                 if (beslog.PlanksLeft - planksToTakeOut <= 0)
                                 {
                                     planksToTakeOut += beslog.PlanksLeft;
                                     beslog.PlanksLeft = 0;
                                 }
+                                stressPoints += (float)planksToTakeOut / beslog.PlanksTotal;
+
                                 for (int i = 0; i < planksToTakeOut; i++)
                                 {
                                     world.SpawnItemEntity(new ItemStack(plank, 1), blockSel.Position.ToVec3d(), null);
@@ -160,7 +165,11 @@ namespace ImmersiveWoodSawing
                                 }
                                 blockAccessor.MarkBlockDirty(blockSel.Position);
                             }
-                            sawtool.DamageItem(world, byEntity, byEntity.RightHandItemSlot, 1);
+                            if (stressPoints >= 0.99f)
+                            {
+                                stressPoints = (stressPoints - 0.99f < 0) ? 0 : stressPoints - 0.99f;
+                                sawtool.DamageItem(world, byEntity, byEntity.RightHandItemSlot, 1);
+                            }
                             byEntity.Attributes.SetBool(Constants.ModId + ":sawnblock", true);
                         }
                     }

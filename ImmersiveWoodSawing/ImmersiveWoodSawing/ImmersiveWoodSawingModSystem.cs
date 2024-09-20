@@ -2,14 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
-using Vintagestory.GameContent;
 
 namespace ImmersiveWoodSawing
 {
@@ -30,19 +27,19 @@ namespace ImmersiveWoodSawing
             if(api is ICoreServerAPI sApi)
             {
                 schannel = sApi.Network.RegisterChannel(Constants.ModId + "-syncconfig")
-                    .RegisterMessageType<ModConfig>();
+                    .RegisterMessageType<ImmersiveWoodSawingConfig>();
             }
             if (api is ICoreClientAPI cApi)
             {
                 cchannel = cApi.Network.RegisterChannel(Constants.ModId + "-syncconfig")
-                    .RegisterMessageType<ModConfig>()
-                    .SetMessageHandler<ModConfig>(OnSyncConfigReceived);
+                    .RegisterMessageType<ImmersiveWoodSawingConfig>()
+                    .SetMessageHandler<ImmersiveWoodSawingConfig>(OnSyncConfigReceived);
             }
         }
 
-        private void OnSyncConfigReceived(ModConfig modConfig)
+        private void OnSyncConfigReceived(ImmersiveWoodSawingConfig modConfig)
         {
-            config = modConfig;
+            config.config = modConfig;
             config.SetWorldConfig(_api as ICoreClientAPI);
         }
         public override void Start(ICoreAPI api)
@@ -58,7 +55,7 @@ namespace ImmersiveWoodSawing
         {
             api.Event.PlayerJoin += byPlayer =>
             {
-                schannel.SendPacket(config, byPlayer);
+                schannel.SendPacket(config.Clone().config, byPlayer);
             };
         }
 

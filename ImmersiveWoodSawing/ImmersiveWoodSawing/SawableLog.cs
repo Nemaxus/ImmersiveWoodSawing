@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
 using Vintagestory.API.Util;
-using Vintagestory.Common;
 
 namespace ImmersiveWoodSawing
 {
@@ -71,6 +66,7 @@ namespace ImmersiveWoodSawing
             {
                 StringBuilder dsc = new StringBuilder();
 
+#if DEBUG
                 if (forPlayer.Entity.Controls.ShiftKey)
                 {
                     dsc.AppendLine("This is not a log");
@@ -79,6 +75,7 @@ namespace ImmersiveWoodSawing
                     dsc.AppendLine("Planks Left: " + be.PlanksLeft);
                     dsc.AppendLine(GenerateInfoString(be));
                 }
+#endif
                 dsc.AppendLine(be.BlockStack.Block.GetPlacedBlockInfo(world, pos, forPlayer));
                 return dsc.ToString();
             }
@@ -90,7 +87,11 @@ namespace ImmersiveWoodSawing
             StringBuilder sb = new StringBuilder();
 
             float meshOffset = be.LogSliceSize * (be.PlanksTotal - be.PlanksLeft);
-            Shape s = be.ResolveShapeElementsSizes(be.GetShape(api as ICoreClientAPI, "complete"), meshOffset, be.PlanksToTakeOut * be.LogSliceSize, (api as ICoreClientAPI).Assets.Get<Shape>(new AssetLocation(be.BlockStack.Block.Shape.Base.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json").ToString())));
+            Shape s = be.ResolveShapeElementsSizes(be.GetShape(api as ICoreClientAPI, "complete"),
+                meshOffset, be.PlanksToTakeOut * be.LogSliceSize,
+                (api as ICoreClientAPI).Assets.Get<Shape>(new AssetLocation(
+                    be.BlockStack.Block.Shape.Base.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json").ToString())));
+
             for (int i = s.Elements.Length; i > 0; i--)
             {
                 var el = s.Elements[i-1];
