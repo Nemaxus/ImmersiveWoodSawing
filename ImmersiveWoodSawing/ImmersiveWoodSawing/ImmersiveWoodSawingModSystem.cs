@@ -109,14 +109,14 @@ namespace ImmersiveWoodSawing
                         if (ingredient.IsTool) continue;
                         if (ingredient.Type != EnumItemClass.Block) continue;
                         
-                        if (ingredient.IsWildCard)
+                        if (ingredient.IsWildCard && ingredient.AllowedVariants != null)
                         {
                             foreach(var alvariant in ingredient.AllowedVariants)
                             RegisterRecipe(ingredient, grecipe, api.World.GetBlock(new AssetLocation(ingredient.Code.ToString().Replace("*",alvariant))), enabled);
                         }
                         else
                         {
-                            RegisterRecipe(ingredient, grecipe, ingredient.ResolvedItemstack.Block, enabled);
+                            RegisterRecipe(ingredient, grecipe, ingredient.ResolvedItemstack?.Block, enabled);
                         }
                         //var variant = ingredient.ResolvedItemstack.Block.Variant;
                         
@@ -194,7 +194,9 @@ namespace ImmersiveWoodSawing
 
         public void RegisterRecipe(CraftingRecipeIngredient ingredient, GridRecipe grecipe,Block block, bool enabled)
         {
-            var variant = block?.Variant;
+            if(block == null || block.Variant == null) return;
+
+            var variant = block.Variant;
 
             if (!variant.ContainsKey("rotation"))return;
 
