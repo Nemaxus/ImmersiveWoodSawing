@@ -3,6 +3,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
+using Vintagestory.GameContent;
 
 namespace ImmersiveWoodSawing
 {
@@ -110,5 +111,12 @@ namespace ImmersiveWoodSawing
             return sb.ToString();
         }
 
+        public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1)
+        {
+            var bESLog = world.BlockAccessor.GetBlockEntity<BESawableLog>(pos);
+            if (bESLog.PlanksTotal == bESLog.PlanksLeft)
+            { return bESLog.BlockStack.Block.GetDrops(world, pos ,byPlayer, dropQuantityMultiplier); }
+            else return base.GetDrops(world, pos, byPlayer, dropQuantityMultiplier);
+        }
     }
 }

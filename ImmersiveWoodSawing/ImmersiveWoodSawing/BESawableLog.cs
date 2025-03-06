@@ -21,7 +21,7 @@ namespace ImmersiveWoodSawing
         private AssetLocation plankType = new("game:plank-aged");
 
 
-        private MeshData blockMesh;
+        internal MeshData blockMesh;
 
         public Cuboidf[] ColBox { get; private set; }
         public Cuboidf[] SelBox { get; private set; }

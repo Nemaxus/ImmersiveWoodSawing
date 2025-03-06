@@ -5,7 +5,7 @@ using Vintagestory.API.Datastructures;
 
 namespace ImmersiveWoodSawing
 {
-    class BlockBehaviorSawable : BlockBehavior
+    public class BlockBehaviorSawable : BlockBehavior
     {
         public static Dictionary<string, List<AssetLocation>> VariantsByType = new Dictionary<string, List<AssetLocation>>();
 
