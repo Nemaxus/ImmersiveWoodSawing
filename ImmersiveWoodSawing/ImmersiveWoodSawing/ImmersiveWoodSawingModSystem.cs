@@ -75,7 +75,7 @@ namespace ImmersiveWoodSawing
                 foreach (var item in api.World.Items)
                 {
                     if (item.Code == null) continue;
-                    if (item.Code.Path.StartsWith("saw-"))
+                    if (item.Tool == EnumTool.Saw)
                     {
                         var modBehaviorIndex = item.CollectibleBehaviors.IndexOf(name => name.GetType().FullName == "AncientTools.CollectibleBehaviors.CollectibleBehaviorMobileStorageDestruction");
                         if (modBehaviorIndex != -1)
