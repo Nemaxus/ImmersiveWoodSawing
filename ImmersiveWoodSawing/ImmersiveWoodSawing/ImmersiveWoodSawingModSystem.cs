@@ -103,7 +103,7 @@ namespace ImmersiveWoodSawing
                     
                     bool enabled = !api.World.Config.GetBool(Constants.ModId + ":DisableGridRecipe", true);
 
-                    foreach (CraftingRecipeIngredient ingredient in grecipe.resolvedIngredients)
+                    foreach (CraftingRecipeIngredient ingredient in grecipe.ResolvedIngredients)
                     {
 
                         if (ingredient.IsTool) continue;
@@ -116,7 +116,7 @@ namespace ImmersiveWoodSawing
                         }
                         else
                         {
-                            RegisterRecipe(ingredient, grecipe, ingredient.ResolvedItemstack?.Block, enabled);
+                            RegisterRecipe(ingredient, grecipe, ingredient.ResolvedItemStack?.Block, enabled);
                         }
                         //var variant = ingredient.ResolvedItemstack.Block.Variant;
                         
